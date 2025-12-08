@@ -1,0 +1,27 @@
+{
+  "name": "@domie/eslint-config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./index.cjs",
+  "exports": {
+    ".": "./index.cjs",
+    "./next": "./next.cjs"
+  },
+  "peerDependencies": {
+    "eslint": "^8.0.0 || ^9.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "eslint-plugin-import": "^2.0.0",
+    "eslint-import-resolver-typescript": "^3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "eslint-plugin-react": {
+      "optional": true
+    },
+    "eslint-plugin-react-hooks": {
+      "optional": true
+    }
+  }
+}
+

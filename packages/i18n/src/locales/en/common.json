@@ -1,0 +1,74 @@
+{
+  "home": {
+    "title": "Welcome to the Web App",
+    "subtitle": "This is a Next.js App Router application using the shared design system from",
+    "packageName": "@domie/ui"
+  },
+  "buttons": {
+    "default": "Default",
+    "outline": "Outline",
+    "ghost": "Ghost",
+    "muted": "Muted",
+    "small": "Small",
+    "medium": "Medium",
+    "large": "Large",
+    "primaryAction": "Primary Action",
+    "secondaryAction": "Secondary Action"
+  },
+  "sections": {
+    "buttonVariants": "Button Variants",
+    "buttonSizes": "Button Sizes",
+    "brandTokens": "Brand Tokens",
+    "brandTokensDescription": "This section demonstrates the use of brand tokens from the design system. The background uses",
+    "bgSurface": "bg-surface",
+    "borderBorderSubtle": "border-border-subtle",
+    "andButtonsUse": "and buttons use brand colors."
+  },
+  "language": {
+    "switch": "Switch Language",
+    "english": "English",
+    "spanish": "Spanish"
+  },
+  "expenses": {
+    "title": "Expenses",
+    "loading": "Loading expenses...",
+    "error": "Error loading expenses",
+    "empty": "No expenses found",
+    "create": "Create Expense",
+    "createTitle": "Create New Expense",
+    "table": {
+      "id": "ID",
+      "description": "Description",
+      "category": "Category",
+      "amount": "Amount",
+      "status": "Status",
+      "submittedAt": "Submitted At",
+      "actions": "Actions"
+    },
+    "form": {
+      "description": "Description",
+      "descriptionPlaceholder": "Enter expense description",
+      "category": "Category",
+      "amount": "Amount",
+      "amountPlaceholder": "0.00",
+      "submit": "Submit",
+      "cancel": "Cancel",
+      "creating": "Creating...",
+      "success": "Expense created successfully"
+    },
+    "status": {
+      "submitted": "Submitted",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "category": {
+      "maintenance": "Maintenance",
+      "repair": "Repair",
+      "utilities": "Utilities",
+      "cleaning": "Cleaning",
+      "improvement": "Improvement",
+      "other": "Other"
+    }
+  }
+}
+

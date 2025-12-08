@@ -1,0 +1,20 @@
+{
+  "name": "@domie/tsconfig",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "files": [
+    "base.json",
+    "next-app.json",
+    "deno-edge.json"
+  ],
+  "exports": {
+    "./base": "./base.json",
+    "./base.json": "./base.json",
+    "./next-app": "./next-app.json",
+    "./next-app.json": "./next-app.json",
+    "./deno-edge": "./deno-edge.json",
+    "./deno-edge.json": "./deno-edge.json"
+  }
+}
+

@@ -1,0 +1,40 @@
+{
+    "name": "monorepo",
+    "version": "0.0.0",
+    "private": true,
+    "packageManager": "pnpm@9.15.4",
+    "scripts": {
+        "dev": "turbo dev",
+        "build": "turbo build",
+        "lint": "turbo lint",
+        "test": "turbo test",
+        "typecheck": "turbo typecheck",
+        "storybook": "pnpm --filter storybook-host storybook",
+        "storybook:build": "pnpm --filter storybook-host storybook:build",
+        "chromatic": "pnpm --filter storybook-host chromatic"
+    },
+    "workspaces": [
+        "apps/*",
+        "packages/*"
+    ],
+    "devDependencies": {
+        "turbo": "latest",
+        "supabase": "^1.0.0",
+        "vitest": "^1.0.0",
+        "@vitest/ui": "^1.0.0",
+        "@testing-library/react": "^14.0.0",
+        "@testing-library/jest-dom": "^6.1.0",
+        "@testing-library/user-event": "^14.5.0",
+        "jsdom": "^23.0.0",
+        "eslint": "^8.57.0",
+        "@typescript-eslint/parser": "^6.19.0",
+        "@typescript-eslint/eslint-plugin": "^6.19.0",
+        "eslint-plugin-react": "^7.33.0",
+        "eslint-plugin-react-hooks": "^4.6.0",
+        "eslint-plugin-import": "^2.29.0",
+        "eslint-import-resolver-typescript": "^3.6.1",
+        "ts-node": "^10.9.2",
+        "@types/node": "^20.0.0",
+        "typescript": "^5.0.0"
+    }
+}

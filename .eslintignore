@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+.next/
+out/
+storybook-static/
+.turbo/
+
+# Supabase
+supabase/migrations/*.sql
+supabase/.temp/
+supabase/.branches/
+
+# Generated files
+*.tsbuildinfo
+next-env.d.ts
+
+# Config files
+*.config.js
+*.config.cjs
+*.config.mjs
+
+# Lock files
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+

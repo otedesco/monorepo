@@ -1,0 +1,163 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run linter
+        run: pnpm lint
+
+      - name: Run type check
+        run: pnpm typecheck
+
+      - name: Build
+        run: pnpm build
+
+      - name: Build Storybook
+        run: pnpm storybook:build
+        continue-on-error: false
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link Supabase project
+        # Link to your Supabase project
+        # Replace PROJECT_REF with your actual project reference
+        run: |
+          supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Run database migrations
+        # Apply migrations to production database
+        run: supabase db push
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          # Add production database URL if needed
+          # DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Deploy Edge Functions
+        # Deploy all Edge Functions to Supabase
+        # Adjust function names as needed for your project
+        run: |
+          # Deploy all functions in supabase/functions/
+          # Example: supabase functions deploy function-name
+          # For deploying all functions, you may need to iterate:
+          # for dir in supabase/functions/*/; do
+          #   if [ -f "$dir/index.ts" ]; then
+          #     func_name=$(basename "$dir")
+          #     supabase functions deploy "$func_name"
+          #   fi
+          # done
+          echo "Deploy Edge Functions - configure based on your function structure"
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      # Add deployment steps for your hosting platform below
+      # Examples for common platforms:
+
+      # - name: Deploy to Vercel
+      #   uses: amondnet/vercel-action@v25
+      #   with:
+      #     vercel-token: ${{ secrets.VERCEL_TOKEN }}
+      #     vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+      #     vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+      #     vercel-args: '--prod'
+
+      # - name: Deploy to Railway
+      #   uses: bervProject/railway-deploy@main
+      #   with:
+      #     railway_token: ${{ secrets.RAILWAY_TOKEN }}
+      #     service: your-service-name
+
+      # - name: Deploy to Fly.io
+      #   uses: superfly/flyctl-actions/setup-flyctl@master
+      #   with:
+      #     version: latest
+      #   env:
+      #     FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      #   run: flyctl deploy --remote-only
+
+      # - name: Deploy to AWS
+      #   # Add your AWS deployment steps here
+      #   # Example: AWS Amplify, ECS, Lambda, etc.
+
+      # - name: Deploy to GCP
+      #   # Add your GCP deployment steps here
+      #   # Example: Cloud Run, App Engine, etc.
+
+      # Storybook Deployment Options:
+
+      # Option 1: Deploy Storybook to GitHub Pages
+      - name: Deploy Storybook to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        if: github.ref == 'refs/heads/main'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./apps/storybook-host/storybook-static
+          destination_dir: storybook
+
+      # Option 2: Deploy Storybook to Vercel (uncomment and configure)
+      # - name: Deploy Storybook to Vercel
+      #   uses: amondnet/vercel-action@v25
+      #   with:
+      #     vercel-token: ${{ secrets.VERCEL_TOKEN }}
+      #     vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+      #     vercel-project-id: ${{ secrets.VERCEL_STORYBOOK_PROJECT_ID }}
+      #     vercel-args: '--prod'
+      #     working-directory: ./apps/storybook-host
+
+      # Option 3: Deploy Storybook to Netlify (uncomment and configure)
+      # - name: Deploy Storybook to Netlify
+      #   uses: nwtgck/actions-netlify@v3.0
+      #   with:
+      #     publish-dir: './apps/storybook-host/storybook-static'
+      #     production-branch: main
+      #     github-token: ${{ secrets.GITHUB_TOKEN }}
+      #     deploy-message: "Deploy Storybook from GitHub Actions"
+      #   env:
+      #     NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      #     NETLIFY_SITE_ID: ${{ secrets.NETLIFY_STORYBOOK_SITE_ID }}
+
+      # Option 4: Deploy Storybook to AWS S3 + CloudFront (uncomment and configure)
+      # - name: Configure AWS credentials
+      #   uses: aws-actions/configure-aws-credentials@v4
+      #   with:
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: us-east-1
+      #
+      # - name: Deploy Storybook to S3
+      #   run: |
+      #     aws s3 sync ./apps/storybook-host/storybook-static s3://${{ secrets.AWS_STORYBOOK_BUCKET }} --delete
+      #
+      # - name: Invalidate CloudFront cache
+      #   run: |
+      #     aws cloudfront create-invalidation --distribution-id ${{ secrets.AWS_STORYBOOK_CLOUDFRONT_ID }} --paths "/*"
+

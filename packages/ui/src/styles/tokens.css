@@ -1,0 +1,38 @@
+@layer base {
+  :root {
+    /* Brand colors - Light mode */
+    --brand-primary: 222.2 47.4% 11.2%;
+    --brand-primary-foreground: 210 40% 98%;
+    --brand-muted: 210 40% 96.1%;
+    --brand-muted-foreground: 222.2 47.4% 11.2%;
+
+    /* Surface colors - Light mode */
+    --surface: 0 0% 100%;
+    --surface-foreground: 222.2 47.4% 11.2%;
+
+    /* Border colors - Light mode */
+    --border-subtle: 214.3 31.8% 91.4%;
+    --border-strong: 217.2 32.6% 17.5%;
+
+    /* Radius */
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Brand colors - Dark mode */
+    --brand-primary: 210 40% 98%;
+    --brand-primary-foreground: 222.2 47.4% 11.2%;
+    --brand-muted: 217.2 32.6% 17.5%;
+    --brand-muted-foreground: 210 40% 98%;
+
+    /* Surface colors - Dark mode */
+    --surface: 222.2 47.4% 11.2%;
+    --surface-foreground: 210 40% 98%;
+
+    /* Border colors - Dark mode */
+    --border-subtle: 217.2 32.6% 17.5%;
+    --border-strong: 217.2 32.6% 80%;
+  }
+}
+
+

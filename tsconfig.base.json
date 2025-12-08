@@ -1,0 +1,40 @@
+{
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "compilerOptions": {
+        "strict": true,
+        "jsx": "react-jsx",
+        "target": "ES2020",
+        "module": "ESNext",
+        "lib": [
+            "ES2020",
+            "DOM",
+            "DOM.Iterable"
+        ],
+        "moduleResolution": "bundler",
+        "resolveJsonModule": true,
+        "allowJs": true,
+        "noEmit": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "isolatedModules": true,
+        "incremental": true,
+        "paths": {
+            "@ui/*": [
+                "packages/ui/src/*"
+            ],
+            "@domain/*": [
+                "packages/domain/src/*"
+            ],
+            "@api-client/*": [
+                "packages/api-client/src/*"
+            ],
+            "@shared/*": [
+                "packages/shared/src/*"
+            ],
+            "@i18n/*": [
+                "packages/i18n/src/*"
+            ]
+        }
+    }
+}

@@ -1,0 +1,74 @@
+{
+  "home": {
+    "title": "Bienvenido a la Aplicación Web",
+    "subtitle": "Esta es una aplicación Next.js App Router que utiliza el sistema de diseño compartido de",
+    "packageName": "@domie/ui"
+  },
+  "buttons": {
+    "default": "Por Defecto",
+    "outline": "Contorno",
+    "ghost": "Fantasma",
+    "muted": "Atenuado",
+    "small": "Pequeño",
+    "medium": "Mediano",
+    "large": "Grande",
+    "primaryAction": "Acción Principal",
+    "secondaryAction": "Acción Secundaria"
+  },
+  "sections": {
+    "buttonVariants": "Variantes de Botón",
+    "buttonSizes": "Tamaños de Botón",
+    "brandTokens": "Tokens de Marca",
+    "brandTokensDescription": "Esta sección demuestra el uso de tokens de marca del sistema de diseño. El fondo usa",
+    "bgSurface": "bg-surface",
+    "borderBorderSubtle": "border-border-subtle",
+    "andButtonsUse": "y los botones usan colores de marca."
+  },
+  "language": {
+    "switch": "Cambiar Idioma",
+    "english": "Inglés",
+    "spanish": "Español"
+  },
+  "expenses": {
+    "title": "Gastos",
+    "loading": "Cargando gastos...",
+    "error": "Error al cargar gastos",
+    "empty": "No se encontraron gastos",
+    "create": "Crear Gasto",
+    "createTitle": "Crear Nuevo Gasto",
+    "table": {
+      "id": "ID",
+      "description": "Descripción",
+      "category": "Categoría",
+      "amount": "Monto",
+      "status": "Estado",
+      "submittedAt": "Fecha de Envío",
+      "actions": "Acciones"
+    },
+    "form": {
+      "description": "Descripción",
+      "descriptionPlaceholder": "Ingrese la descripción del gasto",
+      "category": "Categoría",
+      "amount": "Monto",
+      "amountPlaceholder": "0.00",
+      "submit": "Enviar",
+      "cancel": "Cancelar",
+      "creating": "Creando...",
+      "success": "Gasto creado exitosamente"
+    },
+    "status": {
+      "submitted": "Enviado",
+      "approved": "Aprobado",
+      "rejected": "Rechazado"
+    },
+    "category": {
+      "maintenance": "Mantenimiento",
+      "repair": "Reparación",
+      "utilities": "Servicios Públicos",
+      "cleaning": "Limpieza",
+      "improvement": "Mejora",
+      "other": "Otro"
+    }
+  }
+}
+
