@@ -76,13 +76,20 @@ Run the automated setup:
 pnpm env:setup
 ```
 
-This command:
-1. Creates/overwrites `.env` from `env.example` (safe to run multiple times)
-2. Appends Supabase CLI credentials to `.env` (if Supabase is running)
-3. Normalizes key names (e.g., `API_URL` → `SUPABASE_URL`)
-4. Syncs `NEXT_PUBLIC_*` variables to `apps/web/.env.local`
+This command orchestrates the complete environment setup:
+1. Creates `.env` from `env.example` (fails if `.env` already exists to prevent overwrites)
+2. Appends Supabase credentials from local Supabase instance to `.env`
+3. Normalizes variable names (e.g., `API_URL` → `SUPABASE_URL`, `ANON_KEY` → `SUPABASE_ANON_KEY`)
+4. Syncs required variables to `apps/web/.env.local` with `NEXT_PUBLIC_` prefix
 
-**Note:** You can run `pnpm env:setup` multiple times to refresh your environment variables, especially after starting Supabase.
+**Important:** 
+- Supabase must be running (`pnpm supabase:start`) before running `env:setup`
+- If `.env` already exists, the script will fail to prevent accidental overwrites
+- To update Supabase vars after restarting Supabase: `pnpm env:add:supabase && pnpm env:sync:next`
+
+**Environment Files:**
+- Root `.env` - Contains all environment variables (source of truth)
+- `apps/web/.env.local` - Contains only Next.js public variables (`NEXT_PUBLIC_*`)
 
 #### 4. Run Database Migrations
 
@@ -112,6 +119,21 @@ pnpm --filter web dev
 
 The web app runs on http://localhost:3000.
 
+### Generating TypeScript Types
+
+Generate TypeScript types from your local Supabase schema:
+
+```bash
+pnpm supabase:gen:types
+```
+
+This generates types from your local database schema and outputs them to `packages/api-client/src/types/supabase.ts`. Run this after:
+- Creating new migrations
+- Changing database schema
+- Setting up the project for the first time
+
+The generated types are available throughout the monorepo via the `@domie/api-client` package.
+
 ### Serving Edge Functions
 
 To serve Supabase Edge Functions locally:
@@ -121,16 +143,16 @@ pnpm supabase:functions:serve
 ```
 
 This serves all functions in `supabase/functions/`:
-- `submit-expense` - Submit expense endpoint
+- `hello_world` - Example Edge Function
 
 Test a function with curl:
 
 ```bash
 curl -i --location --request POST \
-  'http://localhost:54321/functions/v1/submit-expense' \
+  'http://localhost:54321/functions/v1/hello_world' \
   --header 'Authorization: Bearer YOUR_ANON_KEY' \
   --header 'Content-Type: application/json' \
-  --data '{"amount": 100, "description": "Test"}'
+  --data '{"name": "Functions"}'
 ```
 
 ### Stopping and Restarting Supabase
@@ -139,11 +161,16 @@ curl -i --location --request POST \
 # Stop Supabase services
 pnpm supabase:stop
 
-# Restart Supabase
-pnpm supabase:restart
+# Restart Supabase (stop then start)
+pnpm supabase:stop && pnpm supabase:start
 
 # Check status
 pnpm supabase:status
+```
+
+**After restarting Supabase**, update your environment variables:
+```bash
+pnpm env:add:supabase && pnpm env:sync:next
 ```
 
 ### Resetting the Database
@@ -173,17 +200,42 @@ npx supabase db reset && pnpm db:seed
 
 | Script | Description |
 |--------|-------------|
-| `pnpm supabase:start` | Start local Supabase services |
+| `pnpm supabase:start` | Start local Supabase services (requires Docker) |
 | `pnpm supabase:stop` | Stop local Supabase services |
-| `pnpm supabase:restart` | Restart Supabase services |
-| `pnpm supabase:status` | Check Supabase status |
-| `pnpm supabase:functions:serve` | Serve Edge Functions locally |
+| `pnpm supabase:status` | Check Supabase status and connection details |
+| `pnpm supabase:functions:serve` | Serve Edge Functions locally for development |
+| `pnpm supabase:gen:types` | Generate TypeScript types from local Supabase schema (outputs to `packages/api-client/src/types/supabase.ts`) |
 
-### Environment Scripts
+**Note:** `supabase:restart` is not available as a script. Use `supabase:stop` followed by `supabase:start`.
+
+### Environment Setup Scripts
+
+The environment setup system provides safe, idempotent configuration of environment variables:
 
 | Script | Description |
 |--------|-------------|
-| `pnpm env:setup` | Full environment setup (creates/updates .env, adds Supabase credentials, syncs to web app) |
+| `pnpm env:setup` | **Complete setup flow** - Orchestrates all steps in sequence |
+| `pnpm env:setup:create` | Create `.env` from `env.example` (fails if `.env` exists) |
+| `pnpm env:add:supabase` | Append Supabase credentials to `.env` (requires Supabase running) |
+| `pnpm env:sync:next` | Sync required vars to `apps/web/.env.local` |
+| `pnpm env:setup:complete` | Log completion message (used internally) |
+
+**Environment Setup Flow:**
+
+The `env:setup` command runs these steps:
+1. `env:setup:create` - Creates `.env` from `env.example` template
+2. `env:add:supabase` - Fetches and appends Supabase credentials from local instance
+3. `env:sync:next` - Extracts `SUPABASE_URL` and `SUPABASE_ANON_KEY`, writes to `apps/web/.env.local` with `NEXT_PUBLIC_` prefix
+4. `env:setup:complete` - Logs success message with next steps
+
+**Individual Commands:**
+
+You can run individual steps if needed:
+- After restarting Supabase: `pnpm env:add:supabase && pnpm env:sync:next`
+- To refresh Next.js vars: `pnpm env:sync:next`
+- To recreate `.env`: Delete `.env` first, then `pnpm env:setup:create`
+
+See [scripts/ENV_SETUP_README.md](./scripts/ENV_SETUP_README.md) for detailed documentation.
 
 ## Project Structure
 
@@ -205,7 +257,8 @@ npx supabase db reset && pnpm db:seed
 │   ├── functions/          # Edge functions
 │   └── seed/               # Seed data (Snaplet)
 ├── scripts/                # Build and setup scripts
-│   └── env-setup.ts        # Environment setup helper
+│   ├── env-setup.ts        # Environment setup script (TypeScript)
+│   └── ENV_SETUP_README.md # Detailed environment setup documentation
 ├── .github/workflows/      # CI/CD workflows
 ├── env.example             # Environment template
 └── package.json            # Root package.json with scripts
@@ -251,6 +304,7 @@ Each directory has its own README with detailed information:
 - [packages/config-ts/README.md](./packages/config-ts/README.md) - TypeScript configs
 - [packages/config-eslint/README.md](./packages/config-eslint/README.md) - ESLint configs
 - [supabase/README.md](./supabase/README.md) - Database & backend
+- [scripts/ENV_SETUP_README.md](./scripts/ENV_SETUP_README.md) - Environment setup documentation
 
 ## CI/CD
 
@@ -263,19 +317,48 @@ See [docs/ci-database.md](./docs/ci-database.md) for database configuration deta
 
 ### Environment Setup Issues
 
-**"Supabase not running" error:**
+**".env already exists" error:**
 ```bash
-# Start Supabase first
+# The script prevents accidental overwrites. Options:
+# Option 1: Delete .env and run setup again
+rm .env && pnpm env:setup
+
+# Option 2: Just add Supabase vars to existing .env
+pnpm env:add:supabase && pnpm env:sync:next
+```
+
+**"Supabase is not running" error:**
+```bash
+# Start Supabase first (wait 30-60 seconds for services to initialize)
 pnpm supabase:start
 
-# Then retry env setup
-pnpm env:add-supabase
+# Then add Supabase credentials
+pnpm env:add:supabase
+
+# Sync to Next.js
+pnpm env:sync:next
+```
+
+**"SUPABASE_URL not found in .env" error:**
+```bash
+# This means Supabase vars weren't added. Fix:
+# 1. Make sure Supabase is running
+pnpm supabase:status
+
+# 2. Add Supabase vars
+pnpm env:add:supabase
+
+# 3. Sync to Next.js
+pnpm env:sync:next
 ```
 
 **Need to refresh environment variables:**
 ```bash
-# Just run env:setup again - it will recreate .env from env.example
-pnpm env:setup
+# After restarting Supabase or changing .env:
+pnpm env:add:supabase && pnpm env:sync:next
+
+# To recreate .env from scratch:
+rm .env && pnpm env:setup
 ```
 
 ### Docker Issues

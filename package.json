@@ -11,7 +11,17 @@
         "typecheck": "turbo typecheck",
         "storybook": "pnpm --filter storybook-host storybook",
         "storybook:build": "pnpm --filter storybook-host storybook:build",
-        "chromatic": "pnpm --filter storybook-host chromatic"
+        "chromatic": "pnpm --filter storybook-host chromatic",
+        "supabase:start": "npx supabase start",
+        "supabase:stop": "npx supabase stop",
+        "supabase:status": "npx supabase status",
+        "supabase:functions:serve": "npx supabase functions serve",
+        "supabase:gen:types": "npx supabase gen types typescript --local --output packages/api-client/src/types/supabase.ts",
+        "env:setup": "ts-node scripts/env-setup.ts all",
+        "env:setup:create": "ts-node scripts/env-setup.ts create",
+        "env:add:supabase": "ts-node scripts/env-setup.ts add-supabase",
+        "env:sync:next": "ts-node scripts/env-setup.ts sync-next",
+        "env:setup:complete": "ts-node scripts/env-setup.ts complete"
     },
     "workspaces": [
         "apps/*",
@@ -19,7 +29,7 @@
     ],
     "devDependencies": {
         "turbo": "latest",
-        "supabase": "^1.0.0",
+        "supabase": "^2.65.5",
         "vitest": "^1.0.0",
         "@vitest/ui": "^1.0.0",
         "@testing-library/react": "^14.0.0",
