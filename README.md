@@ -112,6 +112,14 @@ This runs the complete seeding workflow:
 3. Generates TypeScript types (`pnpm supabase:gen:types`) - updates Supabase types
 4. Seeds the database (`tsx seed.ts`) - populates with test data
 
+**What gets seeded:**
+- 20 users with profiles
+- 5 organizations (created by users 0-4)
+- 20 organization memberships:
+  - 5 owners (users 0-4, one per organization)
+  - 5 admins (users 5-9, one per organization)
+  - 10 agents (users 10-19, 2 per organization)
+
 **Quick seed (when schema hasn't changed):**
 ```bash
 pnpm db:seed
@@ -137,6 +145,16 @@ pnpm --filter web dev
 ```
 
 The web app runs on http://localhost:3000.
+
+### Creating Database Migrations
+
+Create a new migration file:
+
+```bash
+pnpm db:migration:new -- "migration_name"
+```
+
+This creates a new migration file in `supabase/migrations/` with a timestamp prefix. Edit the generated SQL file to implement your schema changes.
 
 ### Generating TypeScript Types
 
@@ -202,6 +220,16 @@ The seeding process uses [Snaplet Seed](https://docs.snaplet.dev/seed) to popula
 | `pnpm db:seed` | Schema unchanged, just need fresh data | Runs seeding script only |
 | `pnpm db:sync` | Schema changed, but don't need reset | Syncs Snaplet schema → Generates types (no reset, no seed) |
 
+**What gets seeded:**
+- **20 users** with profiles (full_name, locale, timezone)
+- **5 organizations** (created by users 0-4)
+  - Alternating types: agency, owner, agency, owner, agency
+  - Unique slugs: `org-1`, `org-2`, etc.
+- **20 organization memberships**:
+  - **5 owners** (users 0-4, one per organization)
+  - **5 admins** (users 5-9, one per organization)
+  - **10 agents** (users 10-19, 2 per organization)
+
 **Recommended workflow after schema changes:**
 ```bash
 # Complete workflow: reset, sync, types, seed
@@ -242,6 +270,8 @@ pnpm db:seed:full
 | `pnpm db:seed` | Seed database with Snaplet (quick seed, no reset) |
 | `pnpm db:seed:full` | Full seeding workflow: reset → sync → types → seed |
 | `pnpm db:sync` | Sync Snaplet schema and generate types (no reset/seed) |
+| `pnpm db:migration:new` | Create a new database migration file |
+| `pnpm db:reset` | Reset database and reapply all migrations |
 | `pnpm storybook` | Start Storybook |
 | `pnpm storybook:build` | Build Storybook for deployment |
 
@@ -254,6 +284,7 @@ pnpm db:seed:full
 | `pnpm supabase:status` | Check Supabase status and connection details |
 | `pnpm supabase:functions:serve` | Serve Edge Functions locally for development |
 | `pnpm supabase:gen:types` | Generate TypeScript types from local Supabase schema (outputs to `packages/api-client/src/types/supabase.ts`) |
+| `pnpm db:migration:new` | Create a new database migration file |
 
 **Note:** `supabase:restart` is not available as a script. Use `supabase:stop` followed by `supabase:start`.
 
@@ -288,7 +319,7 @@ See [scripts/ENV_SETUP_README.md](./scripts/ENV_SETUP_README.md) for detailed do
 
 ## Project Structure
 
-```
+```text
 .
 ├── apps/
 │   ├── web/                # Next.js App Router application
@@ -303,8 +334,16 @@ See [scripts/ENV_SETUP_README.md](./scripts/ENV_SETUP_README.md) for detailed do
 │   └── config-eslint/      # ESLint configs
 ├── supabase/
 │   ├── migrations/         # Database migrations
+│   │   ├── create_profiles_table.sql
+│   │   ├── create_organizations_table.sql
+│   │   ├── create_organization_roles.sql
+│   │   ├── create_organization_memberships.sql
+│   │   └── update_organizations_rls_policies.sql
 │   ├── functions/          # Edge functions
 │   └── seed/               # Seed data (Snaplet)
+│       ├── index.ts        # Main seed orchestrator
+│       ├── profiles.ts     # Profile seeding
+│       └── organizations.ts # Organization & membership seeding
 ├── scripts/                # Build and setup scripts
 │   ├── env-setup.ts        # Environment setup script (TypeScript)
 │   └── ENV_SETUP_README.md # Detailed environment setup documentation
@@ -312,6 +351,33 @@ See [scripts/ENV_SETUP_README.md](./scripts/ENV_SETUP_README.md) for detailed do
 ├── env.example             # Environment template
 └── package.json            # Root package.json with scripts
 ```
+
+## Database Schema
+
+The database includes the following main tables:
+
+### Core Tables
+- **profiles** - User profiles linked 1:1 with `auth.users`
+- **organizations** - Real estate agencies or single-owner entities
+  - Types: `agency` (real estate agencies/companies) or `owner` (single-owner entities)
+  - Each organization has a unique slug for URL-friendly identification
+
+### Access Control
+- **organization_roles** - Static lookup table for organization-level roles
+  - `admin` - Organization Admin (can manage all memberships and update organization)
+  - `agent` - Agent (standard member)
+  - `owner` - Owner (can update organization, same permissions as admin)
+- **organization_memberships** - Links users to organizations with specific roles
+  - Each user can have one role per organization
+  - Admins and owners can manage memberships in their organizations
+  - RLS policies enforce access control based on membership and role
+
+### Row Level Security (RLS)
+
+All tables have RLS enabled with policies that enforce:
+- **Organizations**: Users can view organizations they are members of; admins and owners can update
+- **Organization Roles**: Read-only for authenticated users (no client-side modifications)
+- **Organization Memberships**: Users can view their own memberships; admins can view and manage all memberships in their organizations
 
 ## Key Conventions
 
@@ -352,7 +418,6 @@ Each directory has its own README with detailed information:
 - [packages/i18n/README.md](./packages/i18n/README.md) - Internationalization
 - [packages/config-ts/README.md](./packages/config-ts/README.md) - TypeScript configs
 - [packages/config-eslint/README.md](./packages/config-eslint/README.md) - ESLint configs
-- [supabase/README.md](./supabase/README.md) - Database & backend
 - [scripts/ENV_SETUP_README.md](./scripts/ENV_SETUP_README.md) - Environment setup documentation
 
 ## CI/CD
