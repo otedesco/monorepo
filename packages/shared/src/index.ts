@@ -1,9 +1,8 @@
 // Types
-export * from "./types.ts";
+export * from "./types";
 
 // Environment helpers
-export * from "./env.ts";
+export * from "./env";
 
 // Error classes
-export * from "./errors.ts";
-
+export * from "./errors";

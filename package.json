@@ -11,12 +11,12 @@
         "supabase:start": "npx supabase start",
         "supabase:stop": "npx supabase stop",
         "supabase:functions:serve": "npx supabase functions serve",
-        "supabase:gen:types": "npx supabase gen types typescript --local --output packages/api-client/src/types/supabase.ts",
+        "supabase:gen:types": "npx supabase gen types typescript --local > packages/api-client/src/types/supabase.ts",
         "env:setup": "ts-node scripts/env-setup.ts all",
         "db:migration:new": "npx supabase migration new",
         "db:reset": "npx supabase db reset",
-        "db:seed": "tsx seed.ts",
-        "db:seed:full": "pnpm db:reset && pnpm db:sync && pnpm db:seed",
+        "db:seed": "npx tsx seed.ts",
+        "db:seed:full": "pnpm db:reset && pnpm db:seed:sync && pnpm db:seed",
         "db:seed:sync": "npx @snaplet/seed sync && pnpm supabase:gen:types"
     },
     "workspaces": [

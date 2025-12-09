@@ -29,7 +29,7 @@ const main = async () => {
     // Run all seed functions in dependency order:
     // 1. Creates auth users using Snaplet Seed's users API
     // 2. Creates profiles for those users using Snaplet Seed's profiles API
-    await seedAll(seed, { count: 5 });
+    await seedAll(seed, { count: 20 });
   } catch (error) {
     console.error("\nError seeding database:", error);
     process.exit(1);
