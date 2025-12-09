@@ -101,11 +101,30 @@ npx supabase db push
 
 #### 5. Seed the Database
 
+**After schema changes (recommended):**
+```bash
+pnpm db:seed:full
+```
+
+This runs the complete seeding workflow:
+1. Resets the database (`npx supabase db reset`) - applies all migrations from scratch
+2. Syncs Snaplet Seed schema (`npx snaplet seed sync`) - updates `.snaplet/dataModel.json` to match current schema
+3. Generates TypeScript types (`pnpm supabase:gen:types`) - updates Supabase types
+4. Seeds the database (`tsx seed.ts`) - populates with test data
+
+**Quick seed (when schema hasn't changed):**
 ```bash
 pnpm db:seed
 ```
 
-This uses [Snaplet](https://docs.snaplet.dev/seed) to populate the database with test data.
+This just runs the seeding script without resetting or syncing. Use this when you only need to refresh data.
+
+**Sync schema and types only (when schema changed but don't need reset):**
+```bash
+pnpm db:sync
+```
+
+This syncs Snaplet Seed schema and generates TypeScript types without resetting or seeding.
 
 #### 6. Start Development Servers
 
@@ -173,14 +192,42 @@ pnpm supabase:status
 pnpm env:add:supabase && pnpm env:sync:next
 ```
 
+### Database Seeding Workflow
+
+The seeding process uses [Snaplet Seed](https://docs.snaplet.dev/seed) to populate your database with test data. We provide different commands depending on your needs:
+
+| Command | When to Use | What it Does |
+|---------|-------------|--------------|
+| `pnpm db:seed:full` | **After schema changes** (recommended) | Resets DB → Syncs Snaplet schema → Generates types → Seeds data |
+| `pnpm db:seed` | Schema unchanged, just need fresh data | Runs seeding script only |
+| `pnpm db:sync` | Schema changed, but don't need reset | Syncs Snaplet schema → Generates types (no reset, no seed) |
+
+**Recommended workflow after schema changes:**
+```bash
+# Complete workflow: reset, sync, types, seed
+pnpm db:seed:full
+```
+
+**Quick data refresh:**
+```bash
+# Just seed (assumes schema is already synced)
+pnpm db:seed
+```
+
+**Schema sync only:**
+```bash
+# Sync Snaplet schema and types without resetting
+pnpm db:sync
+```
+
 ### Resetting the Database
 
 ```bash
-# Reset and reapply all migrations
+# Reset and reapply all migrations (manual)
 npx supabase db reset
 
-# Reset and reseed
-npx supabase db reset && pnpm db:seed
+# Reset, sync, and seed (use db:seed:full instead)
+pnpm db:seed:full
 ```
 
 ## Available Scripts
@@ -192,7 +239,9 @@ npx supabase db reset && pnpm db:seed
 | `pnpm lint` | Lint all packages |
 | `pnpm test` | Run all tests |
 | `pnpm typecheck` | Type check all packages |
-| `pnpm db:seed` | Seed database with Snaplet |
+| `pnpm db:seed` | Seed database with Snaplet (quick seed, no reset) |
+| `pnpm db:seed:full` | Full seeding workflow: reset → sync → types → seed |
+| `pnpm db:sync` | Sync Snaplet schema and generate types (no reset/seed) |
 | `pnpm storybook` | Start Storybook |
 | `pnpm storybook:build` | Build Storybook for deployment |
 
@@ -374,6 +423,15 @@ rm .env && pnpm env:setup
 - Ensure `DATABASE_URL` is set in `.env`
 - Ensure migrations are applied: `npx supabase db push`
 - Check foreign key constraints in seed files
+- If schema changed, use `pnpm db:seed:full` instead of `pnpm db:seed`
+
+**Snaplet schema out of sync:**
+- Run `pnpm db:sync` to sync Snaplet schema with current database
+- Or run `pnpm db:seed:full` for a complete reset and sync
+
+**TypeScript types out of date:**
+- Run `pnpm supabase:gen:types` to regenerate types
+- Or run `pnpm db:sync` to sync schema and types together
 
 ## Contributing
 

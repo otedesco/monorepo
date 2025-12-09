@@ -4,14 +4,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "storybook": "storybook dev -p 6006",
-    "storybook:build": "storybook build",
-    "chromatic": "chromatic --project-token=$CHROMATIC_PROJECT_TOKEN"
+    "start": "pnpm build && npx storybook start -p 6006",
+    "build": "npx storybook build",
+    "start:dev": "npx storybook dev -p 6006",
+    "visual:test": "npx chromatic --project-token=$CHROMATIC_PROJECT_TOKEN"
   },
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "@domie/ui": "workspace:*"
+    "@domie/ui": "workspace:*",
+    "@storybook/react": "^8.0.0"
   },
   "devDependencies": {
     "@storybook/react-vite": "^8.0.0",

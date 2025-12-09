@@ -1,0 +1,226 @@
+---
+alwaysApply: true
+---
+
+# Domain-Driven Design Rules
+
+## Overview
+
+We use **Domain-Driven Design (DDD)** to organize business logic. The domain layer (`packages/domain/`) is the heart of the application and must remain **framework-agnostic**.
+
+## Structure
+
+```
+packages/domain/
+  src/
+    tenants/           # Bounded context: Tenants
+      entities/
+      value-objects/
+      use-cases/
+      repositories.ts  # Repository interfaces
+    properties/        # Bounded context: Properties
+      entities/
+      value-objects/
+      use-cases/
+      repositories.ts
+    expenses/          # Bounded context: Expenses
+      entities/
+      value-objects/
+      use-cases/
+      repositories.ts
+    shared/            # Shared domain concepts
+```
+
+## Bounded Contexts
+
+Our main bounded contexts:
+- **Tenants**: Tenant management, tenant information
+- **Properties**: Property listings, property details
+- **Expenses**: Expense tracking, approval workflows
+- **Users**: User management (separate from auth)
+
+Each bounded context is self-contained with its own entities, value objects, and use cases.
+
+## Entities
+
+- Entities have a unique identity (ID)
+- Entities are mutable and have lifecycle
+- Entities encapsulate business rules
+- Example: `Tenant`, `Property`, `Expense`
+
+### Entity Pattern
+
+```typescript
+// packages/domain/src/tenants/entities/tenant.ts
+export class Tenant {
+  private constructor(
+    public readonly id: TenantId,
+    private _name: string,
+    private _email: string,
+    // ...
+  ) {}
+
+  static create(props: CreateTenantProps): Tenant {
+    // Validation and creation logic
+  }
+
+  updateName(newName: string): void {
+    // Business rules for name updates
+    this._name = newName;
+  }
+}
+```
+
+## Value Objects
+
+- Value objects have no identity (equality by value)
+- Value objects are immutable
+- Use for concepts like Email, Money, Address
+- Example: `Email`, `Money`, `PropertyAddress`
+
+### Value Object Pattern
+
+```typescript
+// packages/domain/src/shared/value-objects/email.ts
+export class Email {
+  private constructor(private readonly value: string) {
+    if (!this.isValid(value)) {
+      throw new Error("Invalid email");
+    }
+  }
+
+  static create(value: string): Email {
+    return new Email(value);
+  }
+
+  toString(): string {
+    return this.value;
+  }
+
+  private isValid(value: string): boolean {
+    // Validation logic
+  }
+}
+```
+
+## Use Cases
+
+- Use cases orchestrate entities and value objects
+- Use cases represent business workflows
+- Use cases are called from infrastructure (Edge Functions, API routes)
+- Use cases should be testable without infrastructure
+
+### Use Case Pattern
+
+```typescript
+// packages/domain/src/expenses/use-cases/submit-expense.ts
+export class SubmitExpenseUseCase {
+  constructor(
+    private expenseRepository: ExpenseRepository,
+    private propertyRepository: PropertyRepository,
+  ) {}
+
+  async execute(input: SubmitExpenseInput): Promise<Result<Expense>> {
+    // 1. Validate input
+    // 2. Load domain entities
+    // 3. Apply business rules
+    // 4. Persist changes
+    // 5. Return result
+  }
+}
+```
+
+## Repository Interfaces
+
+- Repository interfaces are defined in the domain layer
+- Repository implementations are in `packages/api-client`
+- Repositories abstract data access
+- Use dependency injection to provide implementations
+
+### Repository Pattern
+
+```typescript
+// packages/domain/src/expenses/repositories.ts
+export interface ExpenseRepository {
+  findById(id: ExpenseId): Promise<Expense | null>;
+  save(expense: Expense): Promise<void>;
+  findByPropertyId(propertyId: PropertyId): Promise<Expense[]>;
+}
+```
+
+## Domain Rules
+
+### No Infrastructure Dependencies
+
+**❌ Forbidden:**
+```typescript
+import { createClient } from "@supabase/supabase-js";
+import { NextRequest } from "next/server";
+import { useState } from "react";
+```
+
+**✅ Allowed:**
+```typescript
+// Pure TypeScript, no framework imports
+export class Tenant {
+  // ...
+}
+```
+
+### No Framework-Specific Types
+
+- Don't use `Date` from libraries (use native `Date`)
+- Don't use framework-specific types in domain
+- Keep domain types serializable (for potential future use)
+
+### Business Logic in Domain
+
+- Validation rules belong in domain
+- Business calculations belong in domain
+- Workflow logic belongs in domain
+- Infrastructure only handles I/O
+
+## Testing
+
+- Domain logic should be testable without infrastructure
+- Use unit tests for entities and value objects
+- Use unit tests for use cases (with mocked repositories)
+- Domain tests should be fast and isolated
+
+## Example: Expense Approval Workflow
+
+```typescript
+// Domain layer (packages/domain)
+export class ApproveExpenseUseCase {
+  constructor(private expenseRepository: ExpenseRepository) {}
+
+  async execute(expenseId: ExpenseId, approverId: UserId): Promise<Result> {
+    const expense = await this.expenseRepository.findById(expenseId);
+    if (!expense) return Result.fail("Expense not found");
+    
+    expense.approve(approverId); // Business logic in entity
+    
+    await this.expenseRepository.save(expense);
+    return Result.ok();
+  }
+}
+
+// Infrastructure layer (supabase/functions)
+import { ApproveExpenseUseCase } from "@domain/expenses/use-cases/approve-expense";
+import { ExpenseRepositoryImpl } from "@api-client/repositories/expense-repository";
+
+serve(async (req) => {
+  const useCase = new ApproveExpenseUseCase(new ExpenseRepositoryImpl(supabase));
+  const result = await useCase.execute(expenseId, approverId);
+  return new Response(JSON.stringify(result), { status: 200 });
+});
+```
+
+## Key Principles
+
+1. **Domain is the core** - Business logic lives here
+2. **Infrastructure is a detail** - Can be swapped without changing domain
+3. **Dependency direction** - Infrastructure depends on domain, not vice versa
+4. **Testability** - Domain should be testable without infrastructure
+5. **Clarity** - Domain code should read like business language
+

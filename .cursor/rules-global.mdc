@@ -1,0 +1,72 @@
+---
+alwaysApply: true
+---
+
+# Global Rules
+
+## Monorepo Structure
+
+This is a **pnpm + Turborepo monorepo** with the following structure:
+
+- `apps/*` - Applications (Next.js apps)
+- `packages/*` - Shared packages
+  - `ui` - Shared design system based on Tailwind + shadcn/ui
+  - `domain` - Domain logic (DDD bounded contexts)
+  - `api-client` - API client and repositories
+  - `shared` - Common utilities
+
+## Tech Stack
+
+- **Frontend**: Next.js 14+ (App Router), React 18+, TypeScript
+- **Styling**: Tailwind CSS with custom design tokens
+- **UI Components**: shadcn/ui patterns via `@my-org/ui`
+- **State Management**: TanStack React Query
+- **Backend**: Supabase (PostgreSQL + Edge Functions in Deno)
+- **Seeding**: Snaplet Seed
+- **Build System**: Turborepo with pnpm workspaces
+
+## TypeScript
+
+- **Strict mode enabled** - All TypeScript configs extend `tsconfig.base.json` with `strict: true`
+- Use explicit types, avoid `any`
+- Prefer type inference where it improves readability
+- Use `type` for object shapes, `interface` for extensible contracts
+
+## Design Tokens
+
+We use **CSS variables** for design tokens, defined in `packages/ui/src/styles/tokens.css`:
+
+- **Brand colors**: `--brand-primary`, `--brand-primary-foreground`, `--brand-muted`, `--brand-muted-foreground`
+- **Surface colors**: `--surface`, `--surface-foreground`
+- **Border colors**: `--border-subtle`, `--border-strong`
+- **Radius**: `--radius`
+
+These are exposed via Tailwind classes:
+- `bg-brand-primary`, `text-brand-primary-foreground`
+- `bg-surface`, `text-surface-foreground`
+- `border-border-subtle`, `border-border-strong`
+- `rounded-xl`, `rounded-2xl` (calculated from `--radius`)
+
+**Always use these tokens** - do not hardcode colors or introduce new design tokens without discussion.
+
+## Domain-Driven Design
+
+- Organize domain logic in `packages/domain` by bounded contexts (tenants, properties, expenses, etc.)
+- Domain layer must be **framework-agnostic** - no Next.js, Supabase, or React imports
+- Infrastructure concerns (database, HTTP) belong in `packages/api-client` or apps
+- See `rules-ddd.md` for detailed DDD guidelines
+
+## Code Organization
+
+- Keep components small and focused
+- Extract reusable logic to packages
+- Use path aliases: `@ui/*`, `@domain/*`, `@api-client/*`, `@shared/*`
+- Prefer composition over inheritance
+
+## Dependencies
+
+- Add dependencies at the appropriate level (app vs package)
+- Use workspace protocol for internal packages: `"@my-org/ui": "workspace:*"`
+- Keep peer dependencies explicit
+- Avoid duplicate dependencies across packages
+

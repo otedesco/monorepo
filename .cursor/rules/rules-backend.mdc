@@ -1,0 +1,200 @@
+---
+alwaysApply: false
+---
+## 2. Domain-Driven Design Rules
+
+### Domain Layer (packages/domain)
+
+- Contains all business logic
+- No framework dependencies (no Supabase, no Deno, no Node, no fetch)
+- Organized by bounded context (expenses, tenants, properties, etc.)
+- Use cases orchestrate entities and repositories
+- Must be fully testable in isolation
+
+### API Client Layer (packages/api-client)
+
+- Implements repository interfaces from the domain layer
+- Owns Supabase client configuration and database access
+- Translates database models ↔ domain entities
+- Handles Supabase-specific errors and types
+- Exposes clean functions that Edge Functions can call
+
+Business logic must never live in Edge Functions.
+
+---
+
+## 3. Supabase Edge Functions (supabase/functions/*)
+
+### Purpose
+
+Edge Functions act as thin HTTP adapters only.
+
+They are responsible for:
+
+1. Parsing and validating HTTP requests
+2. Authenticating and performing high-level authorization
+3. Calling domain use cases via packages/api-client
+4. Mapping domain results and errors to HTTP responses
+
+### Location & Structure
+
+supabase/functions/<function-name>/index.ts
+
+---
+
+## 4. Runtime & Serving
+
+- Use Deno + TypeScript
+- Use built-in Deno.serve (do NOT import serve from deno.land)
+
+Example:
+
+console.info("server started: <function-name>");
+
+Deno.serve(async (req: Request) => {
+  // parse request
+  // authenticate user
+  // call api-client → domain
+  // return Response
+});
+
+---
+
+## 5. Imports & Dependencies
+
+- No bare specifiers
+- All external dependencies must:
+  - Use npm: or jsr:
+  - Be versioned
+
+Examples:
+
+import { createClient } from "npm:@supabase/supabase-js@2.48.0";
+import { z } from "npm:zod@3.23.8";
+
+- Prefer npm: / jsr: over deno.land/x, esm.sh, unpkg
+- Node built-ins must be imported with node: prefix
+
+Example:
+
+import process from "node:process";
+
+---
+
+## 6. Shared Utilities
+
+- Shared Edge Function utilities go in:
+  supabase/functions/_shared/
+
+- Import using relative paths
+- Do NOT create cross-dependencies between Edge Functions
+
+---
+
+## 7. Environment Variables & Secrets
+
+Pre-populated variables:
+
+- SUPABASE_URL
+- SUPABASE_ANON_KEY
+- SUPABASE_SERVICE_ROLE_KEY
+- SUPABASE_DB_URL
+
+For additional secrets:
+supabase secrets set --env-file path/to/env-file
+
+Never hardcode secrets.
+
+---
+
+## 8. Routing
+
+- A single Edge Function may handle multiple routes
+- If routing is required, you may use a minimal router (e.g. Hono via npm:)
+- All routes must be prefixed with /function-name/*
+
+Keep routing readable and explicit.
+
+---
+
+## 9. File System & Background Work
+
+### File I/O
+
+- File writes are allowed only in /tmp
+- Use Deno or Node file APIs
+
+### Background Tasks
+
+- Use EdgeRuntime.waitUntil(promise) for non-blocking work
+- Do NOT assume it exists in the request context
+
+---
+
+## 10. Database & Security (Supabase)
+
+- PostgreSQL via Supabase
+- All tables must have RLS enabled
+- Tenant isolation enforced via RLS (tenant_id, auth.uid())
+- Schema changes go in:
+  supabase/migrations/
+- Use snake_case naming
+
+---
+
+## 11. Error Handling
+
+- Prefer explicit domain errors or Result types
+- Supabase errors are handled in packages/api-client
+- Edge Functions convert errors to HTTP responses
+- Do not leak sensitive implementation details
+
+Example:
+
+return new Response(
+  JSON.stringify({ error: "Unauthorized" }),
+  { status: 401, headers: { "Content-Type": "application/json" } }
+);
+
+---
+
+## 12. Project-Specific Rules (Expense Management)
+
+- Core domain: Expenses
+- Statuses: submitted, approved, rejected
+- Only submitted can be approved or rejected
+- Rejection requires a reason
+- All access is tenant-scoped via users.tenant_id and properties.tenant_id
+- Always use domain types instead of primitives
+
+---
+
+## 13. Expected Development Flow
+
+1. Check domain layer
+   - Use existing use cases
+   - Create new ones if missing
+
+2. Wire infrastructure in packages/api-client
+
+3. Build Edge Function
+   - Parse request
+   - Authenticate & authorize
+   - Call api-client
+   - Return HTTP response
+
+Edge Functions must never re-implement business rules.
+
+---
+
+## 14. Code Quality
+
+- Strict TypeScript
+- Explicit request/response DTOs
+- Correct HTTP status codes
+- Small, readable files
+- Early returns for error cases
+
+---
+
+Using all of the above, generate Supabase Edge Functions that integrate cleanly with the domain and api-client layers while following Supabase’s official Deno Edge Function best practices.

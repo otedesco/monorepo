@@ -1,0 +1,177 @@
+# Frontend Rules
+
+## React & Next.js
+
+### App Router
+
+- Use Next.js 14+ App Router (`app/` directory)
+- Server Components by default, use `"use client"` only when needed
+- Keep client components small and focused
+- Use Server Actions for mutations when appropriate
+
+### Component Patterns
+
+- Use functional components with TypeScript
+- Prefer `React.forwardRef` for components that need refs
+- Use proper TypeScript interfaces for props
+- Export both component and prop types: `export { Button, type ButtonProps }`
+
+### File Organization
+
+```
+src/
+  app/              # Next.js App Router
+  components/       # App-specific components
+  lib/              # App-specific utilities
+```
+
+## TanStack React Query
+
+- Use React Query for all server state management
+- Create query keys as constants or factory functions
+- Use `useQuery` for reads, `useMutation` for writes
+- Handle loading, error, and success states explicitly
+- Prefer optimistic updates for better UX
+
+### Query Client Setup
+
+- Configure QueryClient in a client component (`providers.tsx`)
+- Set sensible defaults (staleTime, cacheTime)
+- Use QueryClientProvider at the root layout
+
+## Design System (`@my-org/ui`)
+
+### Using UI Components
+
+- Import from `@my-org/ui`: `import { Button } from "@my-org/ui"`
+- Use design tokens via Tailwind classes, not hardcoded values
+- Extend components via `className` prop when needed
+- Prefer composition over modification
+
+### Styling Rules
+
+**Always use design tokens:**
+- ✅ `bg-brand-primary`, `text-brand-primary-foreground`
+- ✅ `bg-surface`, `text-surface-foreground`
+- ✅ `border-border-subtle`, `border-border-strong`
+- ❌ `bg-[#123456]`, `text-blue-500` (hardcoded colors)
+
+**Token usage examples:**
+```tsx
+// Good
+<div className="bg-surface text-surface-foreground border border-border-subtle">
+  <Button variant="default">Action</Button>
+</div>
+
+// Bad
+<div className="bg-white text-black border border-gray-200">
+  <button className="bg-blue-500">Action</button>
+</div>
+```
+
+### Adding New Components
+
+- Add to `packages/ui/src/components/`
+- Use `clsx` and `tailwind-merge` for class merging
+- Export from `packages/ui/src/index.ts`
+- Follow shadcn/ui patterns for variants and sizes
+- Use design tokens, not arbitrary values
+
+### UI Library Policy
+
+- **Do not** introduce new UI libraries (Material-UI, Chakra, etc.) without strong justification
+- Prefer extending `@my-org/ui` components
+- If a new library is needed, discuss first and ensure it integrates with our token system
+
+## Tailwind CSS
+
+- Import global styles: `@import "@my-org/ui/styles"` in `app/globals.css`
+- Extend Tailwind config from `@my-org/ui/tailwind.config` to inherit tokens
+- Use utility classes, avoid custom CSS when possible
+- Use `@apply` sparingly, only for repeated patterns
+
+## Type Safety
+
+- Type all component props explicitly
+- Use TypeScript for event handlers: `(e: React.MouseEvent<HTMLButtonElement>) => void`
+- Leverage React Query's type inference from API responses
+- Avoid type assertions (`as`) - fix the types instead
+
+## Performance
+
+- Use `React.memo` for expensive components
+- Lazy load heavy components with `next/dynamic`
+- Optimize images with `next/image`
+- Use React Query's caching to avoid unnecessary requests
+
+## Accessibility
+
+- Use semantic HTML
+- Include ARIA labels where needed
+- Ensure keyboard navigation works
+- Test with screen readers
+
+## Internationalization (i18n)
+
+### Using the i18n System
+
+- **All user-facing text must be internationalized** through `@my-org/i18n`
+- Never hardcode user-facing strings in components
+- All translations must be defined in both English (`en`) and Spanish (`es`)
+
+### Translation Files
+
+- Translation files are located in `packages/i18n/src/locales/{locale}/common.json`
+- Use nested keys for organization: `home.title`, `buttons.primary`, etc.
+- Keep keys descriptive and organized by feature/component
+
+### Usage in Components
+
+```tsx
+// ✅ Good - Using translations
+"use client";
+import { useTranslations } from "@i18n";
+
+export function MyComponent() {
+  const t = useTranslations("common");
+  return <h1>{t("home.title")}</h1>;
+}
+
+// ❌ Bad - Hardcoded text
+export function MyComponent() {
+  return <h1>Welcome</h1>;
+}
+```
+
+### Server Components
+
+For server components, use `next-intl` server utilities:
+
+```tsx
+import { getTranslations } from "next-intl/server";
+
+export async function MyServerComponent() {
+  const t = await getTranslations("common");
+  return <h1>{t("home.title")}</h1>;
+}
+```
+
+### Adding New Translations
+
+1. Add the English translation to `packages/i18n/src/locales/en/common.json`
+2. Add the Spanish translation to `packages/i18n/src/locales/es/common.json`
+3. Use the translation key in your component
+
+### Language Switching
+
+- Use the `useLocale()` hook to get the current locale
+- Use `useRouter()` to navigate to different locales: `router.push(\`/\${locale}/path\`)`
+- The middleware automatically handles locale routing
+
+### Rules
+
+- **Never** hardcode user-facing text
+- **Always** define translations in both English and Spanish
+- Use descriptive, nested keys for organization
+- Keep translation keys consistent across the application
+
