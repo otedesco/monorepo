@@ -11,7 +11,12 @@
         "typecheck": "turbo typecheck",
         "storybook": "pnpm --filter storybook-host storybook",
         "storybook:build": "pnpm --filter storybook-host storybook:build",
-        "chromatic": "pnpm --filter storybook-host chromatic"
+        "chromatic": "pnpm --filter storybook-host chromatic",
+        "env:setup": "ts-node scripts/env-setup.ts",
+        "supabase:start": "supabase start",
+        "supabase:stop": "supabase stop",
+        "supabase:status": "supabase status",
+        "supabase:functions:serve": "supabase functions serve"
     },
     "workspaces": [
         "apps/*",

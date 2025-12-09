@@ -1,0 +1,29 @@
+project_id = "local"
+
+[api]
+port = 54321
+schemas = ["public", "storage", "graphql_public", "extensions"]
+extra_search_path = ["public", "extensions"]
+max_rows = 2000
+
+[db]
+port = 54322
+major_version = 15
+
+[db.pooler]
+port = 54329
+
+[studio]
+port = 54323
+
+[inbucket]
+port = 54324
+
+[storage]
+file_size_limit = "50MiB"
+
+[auth]
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000", "http://localhost:54321/auth/v1/callback"]
+jwt_expiry = 3600
+enable_signup = true
